@@ -670,6 +670,7 @@ void Display::drawTopBar() {
     } else {
         getSystemTimeString(timeBuf, sizeof(timeBuf));
     }
+#ifndef CARDENZA_TARGET
     static uint32_t lastBattUpdateMs = 0;
     static int lastBattLevel = 0;
     uint32_t now = millis();
@@ -678,13 +679,18 @@ void Display::drawTopBar() {
         lastBattUpdateMs = now;
     }
     int battLevel = lastBattLevel;
+#endif
     char statusBuf[4];
     statusBuf[0] = gpsStatus ? 'G' : '-';
     statusBuf[1] = wifiStatus ? 'W' : '-';
     statusBuf[2] = mlStatus ? 'M' : '-';
     statusBuf[3] = '\0';
     char rightBuf[32];
+#ifdef CARDENZA_TARGET
+    snprintf(rightBuf, sizeof(rightBuf), "%s %s", statusBuf, timeBuf);
+#else
     snprintf(rightBuf, sizeof(rightBuf), "%d%% %s %s", battLevel, statusBuf, timeBuf);
+#endif
     int rightWidth = topBar.textWidth(rightBuf);
     
     // Truncate left string if it would overlap right side
@@ -1409,6 +1415,7 @@ void Display::flashSiren(uint8_t cycles) {
 }
 
 void Display::setLED(uint8_t r, uint8_t g, uint8_t b) {
+#ifndef CARDENZA_TARGET
     // Static LED glow - for ambient effects like riddle mode
     // CRITICAL FIX: Scale LED output to prevent voltage sag at high display brightness
     uint8_t displayBrightness = Config::personality().brightness;
@@ -1428,6 +1435,7 @@ void Display::setLED(uint8_t r, uint8_t g, uint8_t b) {
     }
     
     neopixelWrite(LED_PIN, r, g, b);
+#endif
 }
 
 void Display::showLevelUp(uint8_t oldLevel, uint8_t newLevel) {

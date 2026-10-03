@@ -4,6 +4,10 @@
 
 #include <M5Cardputer.h>
 #include <M5Unified.h>
+#ifdef CARDENZA_TARGET
+#undef Serial // Keep critical startup diagnostics despite the app's log sink.
+#include "cardenza_hal.h"
+#endif
 #include <SD.h>
 #include <WiFi.h>              // <-- PATCH: init WiFi early (before heap fragmentation)
 #include <esp_heap_caps.h>     // For heap conditioning
@@ -88,8 +92,18 @@ static void setupHeapLayout() {
 
 void setup() {
     Serial.begin(115200);
+#ifdef CARDENZA_TARGET
+    delay(200);
+#else
     delay(100);
+#endif
     Serial.println("\n=== PORKCHOP STARTING ===");
+#ifdef CARDENZA_TARGET
+    Serial.println("[Cardenza] Porkchop startup; initializing ES8156");
+    cardenza_hal_led_off();
+    const bool codecReady = cardenza_hal_init(32, 16);
+    Serial.printf("[Cardenza] ES8156 setup: %s\n", codecReady ? "OK" : "FAILED");
+#endif
 
     // Deassert CapLoRa SX1262 CS BEFORE SD init. The SX1262 shares
     // MOSI(G14)/MISO(G39)/SCK(G40) with the SD card. If its CS floats low
@@ -101,7 +115,15 @@ void setup() {
 
     // Init M5Cardputer hardware
     auto cfg = M5.config();
+#ifdef CARDENZA_TARGET
+    cfg.internal_imu = false;
+    cfg.external_imu = false;
+    cfg.fallback_board = m5::board_t::board_M5Cardputer;
+#endif
     M5Cardputer.begin(cfg, true);   // enableKeyboard = true
+#ifdef CARDENZA_TARGET
+    Serial.println("[Cardenza] M5 ready");
+#endif
 
     // Configure G0 button (GPIO0) as input with pullup
     pinMode(0, INPUT_PULLUP);
@@ -110,11 +132,17 @@ void setup() {
     // the fence to leave large contiguous space at the bottom.
     // Replaces the old 5-phase boot conditioning with a deterministic layout.
     setupHeapLayout();
+#ifdef CARDENZA_TARGET
+    Serial.println("[Cardenza] heap setup ready; loading config");
+#endif
 
     // Load configuration from SD
     if (!Config::init()) {
         Serial.println("[MAIN] Config init failed, using defaults");
     }
+#ifdef CARDENZA_TARGET
+    Serial.println("[Cardenza] config ready");
+#endif
 
     // Init SD logging (will be enabled via settings if user wants)
     SDLog::init();

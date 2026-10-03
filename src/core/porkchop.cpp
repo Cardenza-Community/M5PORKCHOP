@@ -236,6 +236,9 @@ void Porkchop::init() {
     bool bootGuardActive = bootGuardStreak >= BOOT_GUARD_THRESHOLD;
 
     BootMode bootMode = Config::personality().bootMode;
+#ifdef PORKCHOP_STARTUP_MENU_TEST
+    bootMode = BootMode::IDLE;
+#endif
     bootModeTarget = bootModeToPorkchop(bootMode);
     if (bootModeTarget != PorkchopMode::IDLE && !bootGuardActive) {
         bootModePending = true;
@@ -309,6 +312,9 @@ void Porkchop::update() {
 }
 
 void Porkchop::setMode(PorkchopMode mode) {
+#ifdef CARDENZA_TARGET
+    if (mode == PorkchopMode::CHARGING) return;
+#endif
     if (mode == currentMode) return;
     
     // Store the mode we're leaving for cleanup
@@ -782,10 +788,12 @@ void Porkchop::handleInput() {
                 case '2': // PIGSYNC device select
                     setMode(PorkchopMode::PIGSYNC_DEVICE_SELECT);
                     break;
+#ifndef CARDENZA_TARGET
                 case 'c': // Charging mode
                 case 'C':
                     setMode(PorkchopMode::CHARGING);
                     break;
+#endif
             }
         }
         yield(); // Allow other tasks to run after processing all keys

@@ -16,3 +16,6 @@ compile_commands.json
 scripts/heap_analyzer.py
 *.ski*
 !./docs/images/*
+!CARDENZA.md
+baseline*.log
+cardenza*.log

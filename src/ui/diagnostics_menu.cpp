@@ -161,11 +161,13 @@ void DiagnosticsMenu::saveSnapshot() {
     file.printf("\n");
 
     // Battery Status
+#ifndef CARDENZA_TARGET
     file.printf("POWER STATUS:\n");
     file.printf("  Battery Voltage: %.2f V\n", M5.Power.getBatteryVoltage() / 1000.0f);
     file.printf("  Battery Level: %d%%\n", M5.Power.getBatteryLevel());
     file.printf("  Is Charging: %s\n", M5.Power.isCharging() ? "YES" : "NO");
     file.printf("\n");
+#endif
 
     file.close();
 }
@@ -351,6 +353,7 @@ void DiagnosticsMenu::draw(M5Canvas& canvas) {
     y += lineH + 6;
 
     // Power
+#ifndef CARDENZA_TARGET
     canvas.drawString("BATT:", 4, y);
     char batt[32];
     snprintf(batt, sizeof(batt), "%d%% (%.2fV)", M5.Power.getBatteryLevel(), M5.Power.getBatteryVoltage() / 1000.0f);
@@ -359,6 +362,7 @@ void DiagnosticsMenu::draw(M5Canvas& canvas) {
     canvas.drawString("CHARGING:", 4, y);
     canvas.drawString(M5.Power.isCharging() ? "YES" : "NO", 80, y);
     y += lineH + 6;
+#endif
 
     // Controls (compressed)
     canvas.drawString("[ENT]SAVE [R]WIFI", 4, y);
