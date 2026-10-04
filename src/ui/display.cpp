@@ -673,7 +673,7 @@ void Display::drawTopBar() {
     static uint32_t lastBattUpdateMs = 0;
     static int lastBattLevel = 0;
     uint32_t now = millis();
-    if (lastBattUpdateMs == 0 || (now - lastBattUpdateMs) >= 2000) {
+    if (!M5.isCardenza() && (lastBattUpdateMs == 0 || (now - lastBattUpdateMs) >= 2000)) {
         lastBattLevel = M5.Power.getBatteryLevel();
         lastBattUpdateMs = now;
     }
@@ -684,7 +684,11 @@ void Display::drawTopBar() {
     statusBuf[2] = mlStatus ? 'M' : '-';
     statusBuf[3] = '\0';
     char rightBuf[32];
+if (M5.isCardenza()) {
+    snprintf(rightBuf, sizeof(rightBuf), "%s %s", statusBuf, timeBuf);
+} else {
     snprintf(rightBuf, sizeof(rightBuf), "%d%% %s %s", battLevel, statusBuf, timeBuf);
+}
     int rightWidth = topBar.textWidth(rightBuf);
     
     // Truncate left string if it would overlap right side
@@ -1409,6 +1413,7 @@ void Display::flashSiren(uint8_t cycles) {
 }
 
 void Display::setLED(uint8_t r, uint8_t g, uint8_t b) {
+if (!M5.isCardenza()) {
     // Static LED glow - for ambient effects like riddle mode
     // CRITICAL FIX: Scale LED output to prevent voltage sag at high display brightness
     uint8_t displayBrightness = Config::personality().brightness;
@@ -1428,6 +1433,7 @@ void Display::setLED(uint8_t r, uint8_t g, uint8_t b) {
     }
     
     neopixelWrite(LED_PIN, r, g, b);
+}
 }
 
 void Display::showLevelUp(uint8_t oldLevel, uint8_t newLevel) {

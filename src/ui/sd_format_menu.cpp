@@ -191,10 +191,12 @@ void SdFormatMenu::handleInput() {
     if (state == State::CONFIRM) {
         if (M5Cardputer.Keyboard.isKeyPressed('y') || M5Cardputer.Keyboard.isKeyPressed('Y')) {
             // SAFETY: Require external power to prevent data corruption from power loss
+if (!M5.isCardenza()) {
             if (!M5.Power.isCharging()) {
                 Display::notify(NoticeKind::WARNING, "PLUG IN POWER!", 2000);
                 return;
             }
+}
             state = State::WORKING;
         } else if (M5Cardputer.Keyboard.isKeyPressed('n') || M5Cardputer.Keyboard.isKeyPressed('N') || back) {
             state = State::SELECT;
@@ -495,5 +497,8 @@ void SdFormatMenu::drawConfirm(M5Canvas& canvas) {
 
     // Controls
     canvas.setTextSize(1);
+if (M5.isCardenza()) {
+    canvas.drawString("PLUG IN POWER BEFORE [Y]", centerX, boxY + 60);
+}
     canvas.drawString("[Y] DO IT    [N] ABORT", centerX, boxY + 70);
 }

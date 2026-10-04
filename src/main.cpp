@@ -4,6 +4,7 @@
 
 #include <M5Cardputer.h>
 #include <M5Unified.h>
+#undef Serial // Startup diagnostics use the hardware USB console.
 #include <SD.h>
 #include <WiFi.h>              // <-- PATCH: init WiFi early (before heap fragmentation)
 #include <esp_heap_caps.h>     // For heap conditioning
@@ -75,7 +76,7 @@ static void setupHeapLayout() {
     // WiFi driver allocates its permanent DMA/RX buffers ABOVE the fence
     preInitWiFiDriverEarly();
 
-    // Release the fence — leaves large contiguous space below WiFi driver
+    // Release the fence â€” leaves large contiguous space below WiFi driver
     if (fence) {
         heap_caps_free(fence);
     }
@@ -88,13 +89,13 @@ static void setupHeapLayout() {
 
 void setup() {
     Serial.begin(115200);
-    delay(100);
+    delay(200);
     Serial.println("\n=== PORKCHOP STARTING ===");
 
     // Deassert CapLoRa SX1262 CS BEFORE SD init. The SX1262 shares
     // MOSI(G14)/MISO(G39)/SCK(G40) with the SD card. If its CS floats low
     // the SX1262 responds on the bus and SD.begin() fails with f_mount(3).
-    // MUST happen before M5Cardputer.begin() — GPIO5 is a keyboard matrix
+    // MUST happen before M5Cardputer.begin() â€” GPIO5 is a keyboard matrix
     // input on v1.1 and begin() needs to reconfigure it as INPUT_PULLUP.
     pinMode(5, OUTPUT);
     digitalWrite(5, HIGH);
@@ -102,6 +103,9 @@ void setup() {
     // Init M5Cardputer hardware
     auto cfg = M5.config();
     M5Cardputer.begin(cfg, true);   // enableKeyboard = true
+if (M5.isCardenza()) {
+    Serial.println("[Cardenza] M5 ready");
+}
 
     // Configure G0 button (GPIO0) as input with pullup
     pinMode(0, INPUT_PULLUP);
@@ -110,11 +114,17 @@ void setup() {
     // the fence to leave large contiguous space at the bottom.
     // Replaces the old 5-phase boot conditioning with a deterministic layout.
     setupHeapLayout();
+if (M5.isCardenza()) {
+    Serial.println("[Cardenza] heap setup ready; loading config");
+}
 
     // Load configuration from SD
     if (!Config::init()) {
         Serial.println("[MAIN] Config init failed, using defaults");
     }
+if (M5.isCardenza()) {
+    Serial.println("[Cardenza] config ready");
+}
 
     // Init SD logging (will be enabled via settings if user wants)
     SDLog::init();
@@ -141,7 +151,7 @@ void setup() {
     Mood::init();
 
     // Initialize GPS (if enabled)
-    if (Config::gps().enabled) {
+    if (Config::gps().enabled && !M5.isCardenza()) {
         // Hardware detection: warn if Cap LoRa GPS selected on non-ADV hardware
         if (Config::gps().source == GPSSource::CAP_LORA) {
             auto board = M5.getBoard();

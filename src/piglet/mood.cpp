@@ -413,6 +413,7 @@ static int getBatteryBiasForTier(uint8_t tier) {
 }
 
 static void updateBatteryBias(uint32_t now) {
+if (!M5.isCardenza()) {
     if (lastBatteryCheckMs != 0 && (now - lastBatteryCheckMs) < BATTERY_CHECK_MS) {
         return;
     }
@@ -433,6 +434,7 @@ static void updateBatteryBias(uint32_t now) {
 
     batteryTier = newTier;
     batteryBias = getBatteryBiasForTier(batteryTier);
+}
 }
 
 static const char* pickMoodTierUpMessage(uint8_t tier) {
@@ -1470,9 +1472,11 @@ void Mood::onHandshakeCaptured(const char* apName) {
     XP::addXP(XPEvent::HANDSHAKE_CAPTURED);
     
     // Bonus XP for low battery clutch capture
+if (!M5.isCardenza()) {
     if (M5.Power.getBatteryLevel() < 20) {
         XP::addXP(XPEvent::LOW_BATTERY_CAPTURE);
     }
+}
     
     // Phase 6: Use phrase chaining for handshake celebration
     const SessionStats& sess = XP::getSession();
@@ -1561,9 +1565,11 @@ void Mood::onPMKIDCaptured(const char* apName) {
     }
     
     // Bonus XP for low battery clutch capture
+if (!M5.isCardenza()) {
     if (M5.Power.getBatteryLevel() < 10) {
         XP::addXP(XPEvent::LOW_BATTERY_CAPTURE);
     }
+}
     
     // Phase 6: PMKID gets special 3-phrase chain (mode-specific personality)
     char buf1[48], buf2[48], buf3[48];
@@ -2250,6 +2256,9 @@ bool Mood::pickWeatherPhraseIfDue(uint32_t now) {
 
 // Idea 9: Charging state reactions
 bool Mood::pickChargingPhraseIfDue(uint32_t now) {
+if (M5.isCardenza()) {
+    return false; // No charge detector on this board.
+} else {
     static uint32_t lastChargeCheckMs = 0;
     if (now - lastChargeCheckMs < 5000) return false;
     lastChargeCheckMs = now;
@@ -2290,6 +2299,7 @@ bool Mood::pickChargingPhraseIfDue(uint32_t now) {
         lastPhraseChange = now;
     }
     return triggered;
+}
 }
 
 // Master situational awareness update (called from Mood::update)

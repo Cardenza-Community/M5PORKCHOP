@@ -231,6 +231,7 @@ void ChargingMode::handleInput() {
 }
 
 void ChargingMode::updateBattery() {
+if (!M5.isCardenza()) {
     // Read raw voltage (in mV)
     float voltage = M5.Power.getBatteryVoltage() / 1000.0f;
     auto chargeState = M5.Power.isCharging();
@@ -306,6 +307,7 @@ void ChargingMode::updateBattery() {
     } else {
         minutesToFull = -1;
     }
+}
 }
 
 uint8_t ChargingMode::voltageToPercent(float voltage, bool isCharging) {

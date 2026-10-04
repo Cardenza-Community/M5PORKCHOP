@@ -740,9 +740,11 @@ void XP::addXP(XPEvent event) {
                 ultraStreakAnnounced = true;
             }
             // Check for clutch capture (handshake at <10% battery)
+if (!M5.isCardenza()) {
             if (M5.Power.getBatteryLevel() < 10 && !hasAchievement(ACH_CLUTCH_CAPTURE)) {
                 unlockAchievement(ACH_CLUTCH_CAPTURE);
             }
+}
             break;
         case XPEvent::PMKID_CAPTURED:
             data.lifetimeHS++;
@@ -761,9 +763,11 @@ void XP::addXP(XPEvent event) {
                 ultraStreakAnnounced = true;
             }
             // Check for clutch capture (PMKID at <10% battery)
+if (!M5.isCardenza()) {
             if (M5.Power.getBatteryLevel() < 10 && !hasAchievement(ACH_CLUTCH_CAPTURE)) {
                 unlockAchievement(ACH_CLUTCH_CAPTURE);
             }
+}
             break;
         case XPEvent::DEAUTH_SUCCESS:
             data.lifetimeDeauths++;

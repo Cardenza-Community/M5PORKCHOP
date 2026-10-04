@@ -236,6 +236,9 @@ void Porkchop::init() {
     bool bootGuardActive = bootGuardStreak >= BOOT_GUARD_THRESHOLD;
 
     BootMode bootMode = Config::personality().bootMode;
+#ifdef PORKCHOP_STARTUP_MENU_TEST
+    bootMode = BootMode::IDLE;
+#endif
     bootModeTarget = bootModeToPorkchop(bootMode);
     if (bootModeTarget != PorkchopMode::IDLE && !bootGuardActive) {
         bootModePending = true;
@@ -309,6 +312,7 @@ void Porkchop::update() {
 }
 
 void Porkchop::setMode(PorkchopMode mode) {
+    if (M5.isCardenza() && mode == PorkchopMode::CHARGING) return;
     if (mode == currentMode) return;
     
     // Store the mode we're leaving for cleanup
@@ -784,7 +788,7 @@ void Porkchop::handleInput() {
                     break;
                 case 'c': // Charging mode
                 case 'C':
-                    setMode(PorkchopMode::CHARGING);
+                    if (!M5.isCardenza()) setMode(PorkchopMode::CHARGING);
                     break;
             }
         }

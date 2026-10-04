@@ -1,6 +1,7 @@
 // GPS AT668 implementation
 
 #include "gps.h"
+#include <M5Unified.h>
 #include "../core/config.h"
 #include "../core/sdlog.h"
 #include "../piglet/mood.h"
@@ -17,6 +18,7 @@ uint32_t GPS::lastUpdateTime = 0;
 SemaphoreHandle_t GPS::mutex = nullptr;
 
 void GPS::init(uint8_t rxPin, uint8_t txPin, uint32_t baud) {
+    if (M5.isCardenza()) return; // Connector pins belong to codec/keyboard.
     // GPS source now auto-configured via GPSSource enum in config
     // Pin selection happens in Config::load() based on gpsSource setting
     Serial.printf("[GPS] Init: RX=%d, TX=%d, baud=%lu\n", rxPin, txPin, baud);
@@ -41,6 +43,7 @@ void GPS::init(uint8_t rxPin, uint8_t txPin, uint32_t baud) {
 }
 
 void GPS::reinit(uint8_t rxPin, uint8_t txPin, uint32_t baud) {
+    if (M5.isCardenza()) return; // Connector pins belong to codec/keyboard.
     // Stop existing serial connection
     if (serial) {
         Serial2.end();
@@ -184,6 +187,7 @@ void GPS::sleep() {
 }
 
 void GPS::wake() {
+    if (M5.isCardenza()) return; // Connector pins belong to codec/keyboard.
     if (active) return;
 
     // Restart UART to resume GPS data processing.
@@ -198,6 +202,7 @@ void GPS::wake() {
 }
 
 void GPS::ensureContinuousMode() {
+    if (M5.isCardenza()) return; // Connector pins belong to codec/keyboard.
     // AT6668 (ATGM336H) runs continuously by default.
     // If UART was stopped (sleep), restart it. Otherwise just ensure flag is set.
     if (!serial) {
